@@ -57,7 +57,7 @@ const uploadProcessedImage = async (url, index) => {
     if (!res.body) throw new Error("Failed to fetch image");
 
     const uploadResponse = await imagekit.upload({
-      file: res.body, // Stream directly instead of buffering
+      file: res.body,
       fileName: `output-url-${index}.jpg`,
       folder: "/output-image",
     });

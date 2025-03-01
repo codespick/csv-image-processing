@@ -3,6 +3,9 @@ const Request = require("../models/Request");
 const ImageKit = require("imagekit");
 require("dotenv").config();
 
+const NodeCache = require("node-cache");
+const cache = new NodeCache({ stdTTL: 600 });
+
 var imagekit = new ImageKit({
   publicKey: process.env.publicKey,
   privateKey: process.env.privateKey,
@@ -19,9 +22,16 @@ const processImages = async (req, res, requestId) => {
     const processedProducts = await Promise.all(
       request.products.map(async (product) => {
         const outputUrls = await Promise.all(
-          product.inputImageUrls.map((inputUrl, index) =>
-            uploadProcessedImage(inputUrl, index + 1)
-          )
+          product.inputImageUrls.map(async (inputUrl, index) => {
+            const cacheKey = `${inputUrl}:${index + 1}`;
+            const result = await uploadProcessedImage(
+              inputUrl,
+              parseInt(index + 1)
+            );
+            cache.set(cacheKey, result);
+            const cached = cache.get(cacheKey);
+            return cached;
+          })
         );
         return {
           ...product._doc,
@@ -53,18 +63,18 @@ const processImages = async (req, res, requestId) => {
 const uploadProcessedImage = async (url, index) => {
   try {
     const res = await fetch(url);
-
-    if (!res.body) throw new Error("Failed to fetch image");
-
+    const arrBuffer = await res.arrayBuffer();
+    const buffer = Buffer.from(arrBuffer, "binary");
+    cache.set("buffer", buffer);
     const uploadResponse = await imagekit.upload({
-      file: res.body,
+      file: cache.get("buffer"),
       fileName: `output-url-${index}.jpg`,
       folder: "/output-image",
     });
 
     return imagekit.url({ path: uploadResponse.filePath });
   } catch (err) {
-    console.log(err);
+    console.error("Error processing image:", err);
   }
 };
 

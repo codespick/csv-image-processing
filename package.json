@@ -4,12 +4,14 @@
   "dependencies": {
     "axios": "^0.24.0",
     "body-parser": "^1.20.3",
+    "compression": "^1.8.0",
     "csv-parser": "^3.0.0",
     "dotenv": "^16.4.7",
     "express": "^4.17.1",
     "imagekit": "^6.0.0",
     "mongoose": "^8.11.0",
     "multer": "^1.4.3",
+    "node-cache": "^5.1.2",
     "sharp": "^0.29.3",
     "uuid": "^8.3.2"
   },
@@ -17,6 +19,6 @@
     "nodemon": "^3.1.9"
   },
   "scripts": {
-    "start": "node ./src/server.js"
+    "start": "nodemon ./src/server.js"
   }
 }
